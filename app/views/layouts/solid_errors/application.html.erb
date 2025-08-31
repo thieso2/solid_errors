@@ -51,6 +51,39 @@
       document.querySelectorAll('[data-controller="fade"]').forEach(element => {
         fadeOut(element);
       });
+      
+      function copyClaudeAnalysis(event) {
+        const button = event.currentTarget;
+        const text = button.getAttribute('data-claude-text');
+        
+        // Create a temporary textarea to copy the text
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        
+        // Select and copy the text
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        
+        // Update button text to show success
+        const buttonText = document.getElementById('copy-button-text');
+        const originalText = buttonText.textContent;
+        buttonText.textContent = 'Copied!';
+        
+        // Update button colors for visual feedback
+        button.classList.remove('text-purple-600', 'border-purple-600', 'hover:ring-purple-200');
+        button.classList.add('text-green-600', 'border-green-600', 'hover:ring-green-200');
+        
+        // Reset button text after 2 seconds
+        setTimeout(() => {
+          buttonText.textContent = originalText;
+          button.classList.remove('text-green-600', 'border-green-600', 'hover:ring-green-200');
+          button.classList.add('text-purple-600', 'border-purple-600', 'hover:ring-purple-200');
+        }, 2000);
+      }
     </script>
   </body>
 </html>

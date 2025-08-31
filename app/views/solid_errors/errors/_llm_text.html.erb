@@ -1,0 +1,77 @@
+Error Analysis Request:
+
+EXCEPTION: <%= error.exception_class %>
+MESSAGE: <%= error.message %>
+SEVERITY: <%= error.severity %>
+SOURCE: <%= error.source %>
+STATUS: <%= error.resolved? ? 'Resolved' : 'Unresolved' %>
+
+OCCURRENCES: <%= error.occurrences.count %> total
+First seen: <%= error.occurrences.minimum(:created_at)&.iso8601 || 'N/A' %>
+Last seen: <%= error.occurrences.maximum(:created_at)&.iso8601 || 'N/A' %>
+
+<% if occurrences&.any? %>
+MOST RECENT OCCURRENCE:
+<% most_recent = occurrences.first %>
+Timestamp: <%= most_recent.created_at.iso8601 %>
+<% if most_recent.context.present? %>
+Context:
+<% most_recent.context.each do |key, value| %>
+  <%= key %>: <%= value %>
+<% end %>
+<% end %>
+
+BACKTRACE:
+<% 
+  lines = most_recent.parsed_backtrace.lines
+  filtered_lines = []
+  
+  lines.each_with_index do |line, i|
+    if line.application?
+      # Add the previous line if it exists and is from GEM_ROOT
+      if i > 0 && !lines[i-1].application?
+        filtered_lines << lines[i-1] unless filtered_lines.last == lines[i-1]
+      end
+      
+      # Add the current application line
+      filtered_lines << line
+      
+      # Add the next line if it exists and is from GEM_ROOT
+      if i < lines.length - 1 && !lines[i+1].application?
+        filtered_lines << lines[i+1]
+      end
+    elsif i == 0
+      # Always include the first line if it's not an application line
+      filtered_lines << line
+    end
+  end
+  
+  # If no application lines, show first few lines
+  filtered_lines = lines.take(5) if filtered_lines.empty?
+  
+  prev_was_gem = false
+  collapsed_count = 0
+  
+  filtered_lines.each_with_index do |line, i|
+    # Check if we should show a collapsed indicator
+    if i > 0 && !line.application? && !filtered_lines[i-1].application?
+      # Count how many GEM_ROOT lines were skipped
+      original_index = lines.index(line)
+      prev_original_index = lines.index(filtered_lines[i-1])
+      if original_index && prev_original_index
+        skipped = original_index - prev_original_index - 1
+        if skipped > 0
+%>  ... (<%= skipped %> GEM_ROOT frames omitted) ...
+<% 
+        end
+      end
+    end
+%><%= lines.index(line) + 1 %>. <%= line.filtered_file || line.unparsed_line %><% if line.filtered_number %>:<%= line.filtered_number %><% end %><% if line.filtered_method %> in `<%= line.filtered_method %>`<% end %>
+<% end %>
+<% end %>
+
+Please analyze this error and suggest:
+1. Root cause of the error
+2. Potential fixes
+3. Any patterns or anti-patterns you notice
+4. Recommendations for preventing similar errors

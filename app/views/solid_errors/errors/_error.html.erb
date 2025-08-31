@@ -45,10 +45,13 @@
       </dt>
       <dd class="inline-flex items-center gap-1">
         <% first_seen_at = error.occurrences.minimum(:created_at) %>
-
-        <abbr title="<%= first_seen_at.iso8601 %>" class="cursor-help">
-          <%= time_tag first_seen_at, "#{time_ago_in_words(first_seen_at)} ago" %>
-        </abbr>
+        <% if first_seen_at %>
+          <abbr title="<%= first_seen_at.iso8601 %>" class="cursor-help">
+            <%= time_tag first_seen_at, "#{time_ago_in_words(first_seen_at)} ago" %>
+          </abbr>
+        <% else %>
+          <span>N/A</span>
+        <% end %>
       </dd>
     </div>
     <div class="flex items-center justify-between flex-wrap gap-x-2">
@@ -57,10 +60,13 @@
       </dt>
       <dd class="inline-flex items-center gap-1">
         <% last_seen_at = error.occurrences.maximum(:created_at) %>
-
-        <abbr title="<%= last_seen_at.iso8601 %>" class="cursor-help">
-          <%= time_tag last_seen_at, "#{time_ago_in_words(last_seen_at)} ago" %>
-        </abbr>
+        <% if last_seen_at %>
+          <abbr title="<%= last_seen_at.iso8601 %>" class="cursor-help">
+            <%= time_tag last_seen_at, "#{time_ago_in_words(last_seen_at)} ago" %>
+          </abbr>
+        <% else %>
+          <span>N/A</span>
+        <% end %>
       </dd>
     </div>
     <div class="flex items-center justify-between flex-wrap gap-x-2">
@@ -101,5 +107,5 @@
     </div>
   </dl>
 
-  <%= render "solid_errors/errors/actions", error: error if show_actions %>
+  <%= render "solid_errors/errors/actions", error: error, occurrences: @occurrences if show_actions %>
 <% end %>
